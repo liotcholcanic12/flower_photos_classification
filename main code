@@ -1,0 +1,118 @@
+import tensorflow as tf
+from tensorflow import keras
+import PIL
+import cv2
+import tensorflow as tf
+from tensorflow.keras.applications.imagenet_utils import preprocess_input
+from tensorflow.keras.applications.resnet50 import  preprocess_input
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, RandomFlip, RandomRotation, RandomZoom
+from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+from tensorflow.keras.layers import Flatten, Dense,Dropout
+from sklearn.model_selection import train_test_split
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings('ignore')
+dataset_url = "https://storage.googleapis.com/download.tensorflow.org/example_images/flower_photos.tgz"
+
+dataset_dir = keras.utils.get_file(fname = 'flower_photos' , origin = dataset_url , cache_dir='.',untar=True)
+import pathlib
+
+datadir = pathlib.Path(dataset_dir)
+datadir
+flowers = {'daisy' : list(datadir.glob("daisy/*")),
+'dandelion' : list(datadir.glob("dandelion/*")),
+'roses' : list(datadir.glob("roses/*")),
+'sunflowers' : list(datadir.glob("sunflowers/*")),
+'tulips' : list(datadir.glob("tulips/*"))}
+
+lables = {
+    'daisy' : 0 ,
+    'dandelion' : 1 ,
+    'roses' : 2,
+    'sunflowers' : 3 ,
+    'tulips' :4
+PIL.Image.open(str(flowers['daisy'][0]))
+PIL.Image.open(str(flowers['dandelion'][0]))
+PIL.Image.open(str(flowers['roses'][8]))
+PIL.Image.open(str(flowers['sunflowers'][10]))
+PIL.Image.open(str(flowers['tulips'][6]))
+x =[]
+y = []
+
+for image_name , image in flowers.items():
+  for img in image :
+    img = cv2.imread(str(img)) # converts image form its dir to np array to represent image
+    resized = cv2.resize(img , (224,224))
+    x.append(resized) # append to the list x
+    y.append(lables[image_name])
+
+# Move the array conversion outside the loop
+x = np.array(x)
+y = np.array(y)
+
+x_train , x_test , y_train , y_test  = train_test_split(x,y , test_size=.2 , stratify = y)
+
+# scalin data
+x_train_scaled = x_train / 255
+x_test_scaled = x_test / 255
+data_augmentation = keras.Sequential([
+    keras.layers.RandomFlip('horizontal',input_shape = (224,224,3)), # Changed from keras.layers.experimental.preprocessing.RandomFlip
+    keras.layers.RandomRotation(0.2), # Changed from keras.layers.experimental.preprocessing.RandomRotation
+    keras.layers.RandomZoom(0.2) # Changed from keras.layers.experimental.preprocessing.RandomZoom
+])
+data_augmentation = keras.Sequential([
+    keras.layers.RandomFlip('horizontal',input_shape = (224,224,3)), # Changed from keras.layers.experimental.preprocessing.RandomFlip
+    keras.layers.RandomRotation(0.2), # Changed from keras.layers.experimental.preprocessing.RandomRotation
+    keras.layers.RandomZoom(0.2) # Changed from keras.layers.experimental.preprocessing.RandomZoom
+])
+model.compile(
+    optimizer = 'adam',
+    loss = 'sparse_categorical_crossentropy',
+    metrics = ['accuracy']
+)
+mport matplotlib.pyplot as plt
+history = model.fit(x_train_scaled, y_train, validation_data=(x_test_scaled, y_test), epochs=20)
+model.evaluate(x_test_scaled,y_test)
+mport matplotlib.pyplot as plt
+
+
+plt.figure(figsize=(8, 6))
+plt.plot(history.history['loss'], label='Training Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Training and Validation Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+plt.show()
+
+plt.figure(figsize=(8, 6))
+plt.plot(history.history['accuracy'], label='Training Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title('Training and Validation Accuracy')
+
+pretrained_layer  = tf.keras.applications.MobileNetV2(input_shape=(224, 224, 3),include_top=False,weights='imagenet')
+
+pretrained_model = keras.Sequential([
+    pretrained_layer ,
+    keras.layers.GlobalAveragePooling2D(), # Add GlobalAveragePooling2D layer to flatten the output
+    keras.layers.Dense(5,activation = 'softmax')
+])
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.show()
+pretrained_model.compile(
+    optimizer = 'adam',
+    loss = 'sparse_categorical_crossentropy',
+    metrics = ['accuracy']
+)
+Y_pred = pretrained_model.predict(x_test_scaled)
+print(y_test[:10])
+from sklearn.metrics import accuracy_score
+accuracy = accuracy_score(y_test, Y_pred.argmax(axis=1))
+print("Accuracy:", accuracy)
